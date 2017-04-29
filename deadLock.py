@@ -56,41 +56,62 @@ def printInfo():
     print(finishInfo)
 
 
-#check if the matrix is 0
-def checkFinish(matrix):
-    for i in matrix:
-        if i != '0':
+#check if all the process finished
+def checkFinish():
+    for i in finishInfo:
+        if i != True:
             return False
     return True
 
 # check if request<avaiable
-def checkAvailable(request):
+def checkAvailable(requestN):
     for i in range(resourceNum):
-        if int(request[i]) > int(availableInfo[i]):
+        if int(requestInfo[requestN][i]) > int(availableInfo[i]):
             return False
     return True
 
-# update finish status
-def updateFinish():
-    global finishInfo
-    for i in range(resourceNum):
-        finishInfo[i] = checkFinish(allocationInfo[i])
-
 # update available status
-def updateAvailable(allocation):
+def updateAvailable(processN):
     global availableInfo
+    global allocationInfo
     for i in range(resourceNum):
-        availableInfo[i] = int(availableInfo[i]) + allocation[i]
+        availableInfo[i] = int(availableInfo[i]) + int(allocationInfo[processN][i])
+        allocationInfo[processN][i] = 0
 
 #dead lock detecter
 def dlDetecter():
-    # update finish status first
-    updateFinish()
-    
-    for i in range(processNum):
-        if finishInfo[i] == False and checkAvailable(requestInfo[i]):
-            updateAvailable(allocationInfo[i])
+    global finishInfo
 
+    end = False
+
+    count = 0
+    while end == False:
+        find = False
+        for i in range(processNum):
+            if finishInfo[i] == False:
+                print('\n')
+                print('For process %d '%(i))
+                print('Request is ')
+                print(requestInfo[i])
+                print('Available resource is ')
+                print(availableInfo)
+                if checkAvailable(i):
+                    count=count+1
+                    updateAvailable(i)
+                    finishInfo[i] = True
+                    find =True
+
+        if find == False and checkFinish() == False:
+            print('\nDead lock process are ')
+            for p in range(len(finishInfo)):
+                if finishInfo[p] == False:
+                    print('Process: %d'%(p+1))
+            end = True
+
+        elif checkFinish():
+            print('\nAll finished!')
+            end = True
+        
 
 def runner():
     if len(sys.argv) != 2:
@@ -98,6 +119,7 @@ def runner():
         exit()
     #Get all the data from file
     getData()
+    dlDetecter()
     
 
 runner()
